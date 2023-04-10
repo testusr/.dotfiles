@@ -1,0 +1,7 @@
+require("truehl")
+require("truehl.remap")
+require("truehl.set")
+require("truehl.lspsaga")
+require("truehl.telescope")
+require("truehl.comment")
+--print("init.lua")
