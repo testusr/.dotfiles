@@ -1,3 +1,5 @@
+Clone this directory to ~/.dotfiles
+
 # Using Stow 
 
 Stow is a helper programm, supporting with keeping all dotfiles in a single
