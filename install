@@ -9,4 +9,12 @@ for curr_stow in $all_stows; do
   stow $curr_stow
 done;
 
-unset STOW_DIR 
+unset STOW_DIR
+
+if [[ "$PATH" != *":$HOME/.local/bin"* ]] then
+  echo "adding $HOME/.local/bin to PATH variable via .bash_profile"
+  echo "export PATH=\$PATH:$HOME/.local/bin" >> ~/.bash_profile
+  source ~/.bash_profile 
+else
+  echo ":$HOMR/.local/bin already part of PATH"
+fi
