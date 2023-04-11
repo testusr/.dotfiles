@@ -1,0 +1,12 @@
+STOW_DIR=~/.dotfiles; export STOW_DIR
+
+all_stows=$(for dir in /Users/truehl/.dotfiles/*/; do basename $dir; done) ; 
+echo "found stows '$(echo $all_stows)' in '$STOW_DIR'"
+
+for curr_stow in $all_stows; do 
+  echo "stowing $curr_stow"
+  stow -D $curr_stow 
+  stow $curr_stow
+done;
+
+unset STOW_DIR 
