@@ -3,7 +3,9 @@
 if [[ $# -eq 1 ]]; then
     selected=$1
 else
-    selected=$(find ~/repositories/playground ~/projects ~/documents -mindepth 1 -maxdepth 1 -type d | fzf)
+    dirs=$(find ~/repositories/playground ~/projects ~/documents -mindepth 1 -maxdepth 1 -type d)
+    dirs="$dirs\n$HOME/.dotfiles"
+    selected=$(echo -e "$dirs" | fzf)
 fi
 
 if [[ -z $selected ]]; then
