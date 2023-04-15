@@ -2,6 +2,7 @@ vim.g.mapleader = " "
 vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
 
 vim.keymap.set("i", "jk", "<ESC>") -- "i" -> mapping for insermode / jk is the same as <ESC> which exits the insert mode
+vim.keymap.set("i", "<C-c>", "<Esc>")
 
 -- move selected rows up and down with J and K 
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
@@ -30,8 +31,6 @@ vim.keymap.set("n", "<leader>Y", [["+Y]])
 
 vim.keymap.set({"n", "v"}, "<leader>d", [["_d]])
 
--- This is going to get me cancelled
-vim.keymap.set("i", "<C-c>", "<Esc>")
 
 vim.keymap.set("n", "Q", "<nop>")
 vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tms.sh<CR>")
