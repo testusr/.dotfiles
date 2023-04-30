@@ -29,5 +29,52 @@ will install all files under ~/dotfiles/nvim as symlink into target directory
 ```
 .config -> ../dotfiles/nvim/.config
 
-```
+# Shortcuts 
+
+## LSP 
+
+|shorcut|action|
+|-------|------|
+|gf | show definitions, referemces|
+|gD | go to declaration|
+|gd | see definition and makes edits in window|
+|gi | go to implementation | 
+|<leader>vca | see available code actions | 
+|<leader>vrn | smart rename | 
+|<leader>vd | show diagnostics for line|
+|<leader>d | show diagnostics for cursor|
+|[d | jump to previos diagnostics in buffer|
+|]d | jump to next diagnostics in buffer | 
+|K | show documantation for what is under cursor|
+|<leader> o| see outline on the right hand side | 
+|<leader>ci | lspsaga incoming calls | 
+|<leader>co | lspsage outgoing calls | 
+|<leader>v  |  | 
+|<leader>vws | | 
+|<leader>vd | | 
+|<leader>[d | | 
+|<leader>]d | | 
+|<leader>vca | | 
+|<leader>vrr | | 
+|<leader>vrn | | 
+|<C-h> | insert mode |
+
+## fugitive 
+
+|shortcut|action|
+|--------|------|
+|<leader>gs | Git Summary / g? for mappings|
+
+## undotree 
+
+|shortcut|action|
+|--------|------| 
+|<leader>u | toggle | 
+
+## harpoon
+|shortcut|action|
+|--------|------|
+|<leader>a | add file|
+|<C-e> | quick menu | 
+|<C-[h,,t,n,s]>| file switch 1,2,3,4|
 
