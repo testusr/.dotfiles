@@ -31,6 +31,10 @@ lsp.on_attach(function(client, bufnr)
     vim.keymap.set("n", "K", "<cmd>Lspsaga hover_doc<CR>", opts) -- show documentation for what is under cursor
     vim.keymap.set("n", "<leader>o", "<cmd>LSoutlineToggle<CR>", opts) -- see outline on right hand side
 
+    -- Call hierarchy
+    vim.keymap.set("n", "<Leader>ci", "<cmd>Lspsaga incoming_calls<CR>")
+    vim.keymap.set("n", "<Leader>co", "<cmd>Lspsaga outgoing_calls<CR>")
+
     --	vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end, opts)
     --	vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, opts)
     vim.keymap.set("n", "<leader>v", function() vim.lsp.buf.definition() end, opts)

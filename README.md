@@ -1,4 +1,4 @@
-Clone this directory to ~/.dotfiles
+Cl/one this directory to ~/.dotfiles
 
 # preparing tmux 
 
@@ -82,4 +82,29 @@ will install all files under ~/dotfiles/nvim as symlink into target directory
 |<leader>a | add file|
 |<C-e> | quick menu | 
 |<C-[h,,t,n,s]>| file switch 1,2,3,4|
+
+#Tmux 
+
+|shortcut|action|
+|--------|------|
+|<C-a>c | new window| 
+|<C-a>,  | rename window|
+|<C-a>n | next windows|
+|<C-a>p | previous window| 
+|<C-a>w | navigate windows|
+|<C-a>[number] | jump directly to window number x |
+|<C-a>[ | open copy mode |
+|<C-a>r | reload config | 
+|<C-a>I | install plugins|
+
+#nvim 
+
+|command|action|
+|-------|------|
+|:tabnew | new blank tab|
+|:gt / :tabn | next tab | 
+|:gT / :tabp | previous tab| 
+|[i]gt | goto tab nr [i] | 
+|:tabc | close current tab | 
+|:tabo | close all other tabs| 
 
