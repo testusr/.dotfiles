@@ -29,8 +29,11 @@ will install all files under ~/dotfiles/nvim as symlink into target directory
 ```
 .config -> ../dotfiles/nvim/.config
 
+<<<<<<< HEAD
 ````
 
+=======
+>>>>>>> refs/remotes/origin/main
 # Shortcuts 
 
 ## LSP 
