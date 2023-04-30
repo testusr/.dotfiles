@@ -1,5 +1,16 @@
 Clone this directory to ~/.dotfiles
 
+# preparing tmux 
+
+```
+brew install tmux 
+$ git clone https://github.com/tmux-plugins/tpm.git ~/.tmux/plugins/tpm
+$ tmux source ~/.tmux.conf
+
+```
+
+[tpm - plugin manager](https://linuxhint.com/installing-plugins-tmux/)
+
 # Using Stow 
 
 Stow is a helper programm, supporting with keeping all dotfiles in a single
