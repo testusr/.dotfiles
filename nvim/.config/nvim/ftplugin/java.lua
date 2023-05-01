@@ -80,7 +80,7 @@ local config = {
   -- The command that starts the language server
   -- See: https://github.com/eclipse/eclipse.jdt.ls#running-from-the-command-line
   cmd = {
-    '/usr/local/Cellar/openjdk/19.0.2/bin/java',
+    '/Library/Java/JavaVirtualMachines/temurin-19.jdk/Contents/Home/bin/java',
     '-Declipse.application=org.eclipse.jdt.ls.core.id1',
     '-Dosgi.bundles.defaultStartLevel=4',
     '-Declipse.product=org.eclipse.jdt.ls.core.product',
@@ -106,13 +106,13 @@ local config = {
   -- for a list of options
   settings = {
     java = {
-      home = '/Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home',
+      home = '/Library/Java/JavaVirtualMachines/temurin-19.jdk/Contents/Home',
       eclipse = {
         downloadSources = true,
       },
       configuration = {
         updateBuildConfiguration = "interactive",
-        runtimes = {
+       runtimes = {
           {
             name = "JavaSE-17",
             path = "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home",
