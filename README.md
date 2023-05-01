@@ -26,14 +26,7 @@ stow -d ~/dotfiles -t ~/stow_target nvim
 will install all files under ~/dotfiles/nvim as symlink into target directory
 ~/stow_target 
 
-```
-.config -> ../dotfiles/nvim/.config
 
-<<<<<<< HEAD
-````
-
-=======
->>>>>>> refs/remotes/origin/main
 # Shortcuts 
 
 ## LSP 
