@@ -124,10 +124,6 @@ local config = {
           {
             name = "JavaSE-11",
             path = "/Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home",
-          },
-          {
-            name = "JavaSE-8",
-            path = "/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home/",
           }
         }
       },
@@ -147,7 +143,7 @@ local config = {
         enabled = true,
         settings = {
           url = vim.fn.stdpath "config" .. "/lang-servers/intellij-java-google-style.xml",
-          profile = "GoogleStyle",
+          profile = "GoogleStyle_SK",
         },
       },
 

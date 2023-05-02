@@ -1,6 +1,13 @@
 Cl/one this directory to ~/.dotfiles
 # preparing nvim 
 
+## intendation 
+
+|shorcut|action|
+|-------|------|
+|gq  | |
+|=   | change intendation |
+
 ## install packer 
 
 package manager to install many other plugins. Run PackerInstall after neovim 
@@ -20,9 +27,12 @@ brew install tmux
 $ git clone https://github.com/tmux-plugins/tpm.git ~/.tmux/plugins/tpm
 $ tmux source ~/.tmux.conf
 
+#
 ```
 
 [tpm - plugin manager](https://linuxhint.com/installing-plugins-tmux/)
+|shorcut|action|
+|-------|------|
 
 # Using Stow 
 
@@ -113,4 +123,5 @@ will install all files under ~/dotfiles/nvim as symlink into target directory
 |[i]gt | goto tab nr [i] | 
 |:tabc | close current tab | 
 |:tabo | close all other tabs| 
-
+|u | undo changes | 
+|<C-r> | redo changes |
