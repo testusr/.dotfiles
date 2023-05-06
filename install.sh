@@ -26,9 +26,11 @@ all_stows=$(for dir in $HOME/.dotfiles/*/; do basename $dir; done) ;
 echo "found stows '$(echo $all_stows)' in '$STOW_DIR'"
 
 for curr_stow in $all_stows; do 
-  echo "stowing $curr_stow"
-  stow -D $curr_stow 
-  stow $curr_stow
+  if [[ "$curr_stow" != *"_arch"* ]]; then 
+    echo "stowing $curr_stow"
+    stow -D $curr_stow 
+    stow $curr_stow
+  fi
 done;
 
 unset STOW_DIR
