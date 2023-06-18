@@ -139,10 +139,10 @@ _G.packer_plugins = {
     path = "/Users/truehl/.local/share/nvim/site/pack/packer/start/indent-blankline.nvim",
     url = "https://github.com/lukas-reineke/indent-blankline.nvim"
   },
-  lspsaga = {
+  ["lspsaga.nvim"] = {
     loaded = true,
-    path = "/Users/truehl/.local/share/nvim/site/pack/packer/start/lspsaga",
-    url = "https://github.com/nvimdev/lspsaga"
+    path = "/Users/truehl/.local/share/nvim/site/pack/packer/start/lspsaga.nvim",
+    url = "https://github.com/nvimdev/lspsaga.nvim"
   },
   ["lualine.nvim"] = {
     loaded = true,

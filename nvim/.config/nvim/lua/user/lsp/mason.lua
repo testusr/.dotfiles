@@ -4,7 +4,7 @@ local servers = {
 	-- "html",
 	-- "tsserver",
 	-- "lua_ls",
-  -- `:w"jdtls", 
+  "jdtls", 
   "pyright",
 	-- "bashls",
 	"jsonls",
@@ -37,9 +37,7 @@ end
 
 local opts = {}
 
-vim.api.nvim_echo({{vim.inspect(servers), "Normal"}}, true, {})
 for _, server in pairs(servers) do
-  vim.api.nvim_echo({{server, "Normal"}}, true, {})
 	opts = {
 		on_attach = require("user.lsp.handlers").on_attach,
 		capabilities = require("user.lsp.handlers").capabilities,
