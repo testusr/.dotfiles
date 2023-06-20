@@ -80,35 +80,34 @@ local opts = {
 }
 
 local mappings = {
+  ["e"] = { "<cmd>NvimTreeToggle<cr>", "NvimTree" },
   ["a"] = { "<cmd>Alpha<cr>", "Alpha" },
   ["b"] = {
     "<cmd>lua require('telescope.builtin').buffers(require('telescope.themes').get_dropdown{previewer = false})<cr>",
     "Buffers",
   },
-  ["e"] = { "<cmd>NvimTreeToggle<cr>", "Explorer" },
+  
   ["w"] = { "<cmd>w!<CR>", "Save" },
   ["q"] = { "<cmd>q!<CR>", "Quit" },
-  ["c"] = { "<cmd>Bdelete!<CR>", "Close Buffer" },
   ["h"] = { "<cmd>nohlsearch<CR>", "No Highlight" },
   ["f"] = {
     "<cmd>lua require('telescope.builtin').find_files(require('telescope.themes').get_dropdown{previewer = false})<cr>",
     "Find files",
   },
-  ["F"] = { "<cmd>Telescope live_grep theme=ivy<cr>", "Find Text" },
-  ["P"] = { "<cmd>lua require('telescope').extensions.projects.projects()<cr>", "Projects" },
 
-  p = {
-    name = "Packer",
-    c = { "<cmd>PackerCompile<cr>", "Compile" },
-    i = { "<cmd>PackerInstall<cr>", "Install" },
-    s = { "<cmd>PackerSync<cr>", "Sync" },
-    S = { "<cmd>PackerStatus<cr>", "Status" },
-    u = { "<cmd>PackerUpdate<cr>", "Update" },
+  f = {
+    name = "Find",
+    g = { "<cmd>Telescope live_grep<cr>", "Live Grep" },
+    f = { "<cmd>Telescope find_files<cr>", "Find Files" },
+    F = { "<cmd>lua require('telescope.builtin').find_files({ hidden=true, prompt_title = 'All Files' })<CR>", "Find All Files" },
+    b = { "<cmd>Telescope buffers<cr>", "Find Buffer" },
+    g = { "<cmd>Telescope help_tags<cr>", "Find irep" },
+    p = {  "<cmd>lua require('telescope').extensions.projects.projects()<cr>", "Projects" },
   },
 
   g = {
     name = "Git",
-    f = { "<cmd>Git <cr>", "Fugitive" },
+    f = { "<cmd>Git <CR>", "Lazygit" },
     g = { "<cmd>lua _LAZYGIT_TOGGLE()<CR>", "Lazygit" },
     j = { "<cmd>lua require 'gitsigns'.next_hunk()<cr>", "Next Hunk" },
     k = { "<cmd>lua require 'gitsigns'.prev_hunk()<cr>", "Prev Hunk" },
@@ -130,6 +129,28 @@ local mappings = {
     },
   },
 
+  -- c = {
+  --   name = "code",
+  --   a = { "<cmd>lspsaga code_action<cr>", "code action" },
+  --   rn = { "<cmd>lspsaga rename<cr>", "rename" },
+  --   qf = { "<cmd>lua vim.diagnostic.setloclist()<cr>", "quickfix" },
+  --   h = {"<cmd>lspsaga lsp_finder<cr>", "lsp finder"}, 
+  --   a = { "<cmd>lspsaga code_action<cr>", "code action"},
+  --   pr = {"<cmd>lspsaga rename ++project<cr>", "rename project wide"},
+  --   pd = {"<cmd>lspsaga peek_definition<cr>", "peek defintion <c-t> to jump back"},
+  --   gd = {"<cmd>lspsaga goto_definition<cr>", "go definition"}, 
+  --   pt = {"<cmd>lspsaga peek_type_definition<cr>", "peek type definition"},
+  --   gt = {"<cmd>lspsaga goto_type_definition<cr>", "go to type definition"},
+  --   sl = { "<cmd>lspsaga show_line_diagnostics<cr>", "show line diagnostic"},
+  --   sb = {"<cmd>lspsaga show_buf_diagnostics<cr>", "show buffer diagnostics"},
+  --   sw = {"<cmd>lspsaga show_workspace_diagnostics<cr>", "show workspace diagnostics"},
+  --   sc = {"<cmd>lspsaga show_cursor_diagnostics<cr>", "show cursor diagnostics"},
+  --   o = {"<cmd>lspsaga outline<cr>", "toggle outline"},
+  --   k = {"<cmd>lspsaga hover_doc ++keep<cr>", "hover doc"},
+  --   i =  {"<cmd>lspsaga incoming_calls<cr>", "incoming calls"},
+  --   o = {"<cmd>lspsaga outgoing_calls<cr>", "outgoing calls"},
+  --   t = {"<cmd>lspsaga term_toggle<cr>", "terminal toggle"},
+  -- },
   l = {
     name = "LSP",
     a = { "<cmd>lua vim.lsp.buf.code_action()<cr>", "Code Action" },
