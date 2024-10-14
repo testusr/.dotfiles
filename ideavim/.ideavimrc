@@ -1,0 +1,62 @@
+nnoremap g; :action JumpToLastChange<Enter>
+nnoremap g, :action JumpToNextChange<Enter>
+
+"'* NERDTree plugin
+" Enulates NERDTree
+" Basic Commands:
+" Ctrl-n Open NERDTree (mapped bellow)
+Close the NERDTree window
+Open files, directories and bookmarks
+RO
+Open selected file, but leave cursor in the NERDTree
+Open selected file in a split window
+Sane as 1, but leave the cursor on the NERDTree
+Open selected file in a new split
+Same as s, but leave the cursor on the NERDTree
+Jump down to next sibling of the current directory
+Jump up to previous sibling of the current directory
+Recursively refresh the current root
+Display the NERDTree menu
+hetps://eithub.com/JetBrains/ideavim/wiki/NERDTree-support for details
+
+"https://github.com/JetBrains/ideavim/wiki/NERDTree-support
+set NERDTree
+map <c-n> :NERDTree<CR>
+":NERDTreeFocus:
+":NERDTreeToggle
+":NERDTreeClose
+":NERDTreeFind
+":NERDTreeRefreshRoot
+
+set clipboard=unnamedplus               " allows IdeaVim to access the system clipboard
+set cmdheight=2                         " more space in the command line for displaying messages
+set conceallevel=0                      " ensure conceal doesn't hide `` in markdown files
+set fileencoding=utf-8                  " set file encoding to UTF-8
+set hlsearch                            " highlight all matches on previous search pattern
+set ignorecase                          " ignore case in search patterns
+set mouse=a                             " allow the mouse to be used in IdeaVim
+set showtabline=2                       " always show tabs
+set smartcase                           " smart case matching
+set smartindent                         " smarter indentation
+set splitbelow                          " horizontal splits below current window
+set splitright                          " vertical splits to the right of current window
+set noswapfile                          " don't create a swapfile
+set timeoutlen=300                      " time to wait for mapped sequence to complete
+set undofile                            " enable persistent undo
+set updatetime=300                      " faster completion
+set expandtab                           " convert tabs to spaces
+set shiftwidth=2                        " set shiftwidth to 2 spaces
+set tabstop=2                           " set tabstop to 2 spaces
+set cursorline                          " highlight the current line
+set number                              " display line numbers
+set relativenumber                      " display relative line numbers
+set numberwidth=4                       " set number column width
+set signcolumn=yes                      " always show the sign column
+set wrap                                " wrap long lines
+set linebreak                           " avoid breaking words on wrap
+set scrolloff=8                         " minimal number of lines to keep above/below cursor
+set sidescrolloff=8                     " minimal number of columns to keep left/right of cursor
+set iskeyword+=-                        " recognize hyphenated words in searches
+set shortmess+=c                        " don't show completion menu messages
+set formatoptions-=cro                  " avoid auto-inserting comment leader in certain situations
+set whichwrap=b,s,<,>,[,],h,l           " allow certain keys to traverse across lines
