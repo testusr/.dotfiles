@@ -237,6 +237,10 @@ if.app-id = 'com.apple.Safari'
 run = ['move-node-to-workspace S']
 
 [[on-window-detected]]
+if.app-id = 'org.mozilla.firefox'
+run = ['move-node-to-workspace S']
+
+[[on-window-detected]]
 if.app-id = 'com.apple.Notes'
 run = ['move-node-to-workspace N']
 
