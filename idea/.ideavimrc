@@ -112,8 +112,8 @@ let g:WhichKeyDesc_errors_prev = "<leader>ep Go to previous error in solution"
 inoremap jk <Esc>
 
 " Tab navigation
-nnoremap <C-A-i> :tabnext<CR>
-nnoremap <C-A-u> :tabprev<CR>
+nnoremap <C-A-o> :tabnext<CR>
+nnoremap <C-A-i> :tabprev<CR>
 
 " Pane navigation
 nnoremap <C-A-h> <C-w>h
@@ -174,34 +174,34 @@ map <leader>fr :action RecentFiles<CR>
 map <leader>fc :action FindInPath<CR>
 map <leader><leader> :action RecentFiles<CR>
 map <leader>fl :action RecentLocations<CR>
-map <leader>fs :action NewScratchFile
+map <leader>fs :action NewScratchFile<CR>
 
 " Close active tab
-map <leader>q :action CloseContent
+map <leader>q :action CloseContent<CR>
 
 " Refactoring
-map <leader>rn :action RenameElement
-map <leader>rm :action ExtractMethod
-map <leader>rv :action IntroduceVariable
-map <leader>rf :action IntroduceField
-map <leader>rs :action ChangeSignature
-map <leader>rr :action Refactorings.QuickListPopupAction
+map <leader>rn :action RenameElement<CR>
+map <leader>rm :action ExtractMethod<CR>
+map <leader>rv :action IntroduceVariable<CR>
+map <leader>rf :action IntroduceField<CR>
+map <leader>rs :action ChangeSignature<CR>
+map <leader>rr :action Refactorings.QuickListPopupAction<CR>
 
 " Go to code
-nmap <leader>gd :action GotoDeclaration
-nmap <leader>gy :action GotoTypeDeclaration
-nmap <leader>gi :action GotoImplementation
-nmap <leader>gu :action ShowUsages
-nmap <leader>gt :action GotoTest
-nmap <leader>gf :action Back
-nmap <leader>gb :action Forward
+nmap <leader>gd :action GotoDeclaration<CR>
+nmap <leader>gy :action GotoTypeDeclaration<CR>
+nmap <leader>gi :action GotoImplementation<CR>
+nmap <leader>gu :action ShowUsages<CR>
+nmap <leader>gt :action GotoTest<CR>
+nmap <leader>gf :action Back<CR>
+nmap <leader>gb :action Forward<CR>
 
 " Git windows
-map <leader>gc :action CheckinProject
-map <leader>gs :action ActivateVersionControlToolWindow
-map <leader>gb :action Git.Branches
+map <leader>gc :action CheckinProject<CR>
+map <leader>gs :action ActivateVersionControlToolWindow<CR>
+map <leader>gb :action Git.Branches<CR>
 
 " Errors
-map <leader>en :action ReSharperGotoNextErrorInSolution
-map <leader>ep :action ReSharperGotoPrevErrorInSolution
+map <leader>en :action ReSharperGotoNextErrorInSolution<CR>
+map <leader>ep :action ReSharperGotoPrevErrorInSolution<CR>
 
