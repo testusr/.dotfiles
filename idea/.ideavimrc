@@ -112,18 +112,18 @@ let g:WhichKeyDesc_errors_prev = "<leader>ep Go to previous error in solution"
 inoremap jk <Esc>
 
 " Tab navigation
-nnoremap <A-n> :tabnext<CR>
-nnoremap <A-p> :tabprev<CR>
+nnoremap <C-A-i> :tabnext<CR>
+nnoremap <C-A-u> :tabprev<CR>
 
 " Pane navigation
-nnoremap <A-h> <C-w>h
-nnoremap <A-l> <C-w>l
-nnoremap <A-k> <C-w>k
-nnoremap <A-j> <C-w>j
+nnoremap <C-A-h> <C-w>h
+nnoremap <C-A-l> <C-w>l
+nnoremap <C-A-k> <C-w>k
+nnoremap <C-A-j> <C-w>j
 
 " Jump between methods
-nnoremap [[ <Action>(MethodUp)
-nnoremap ]] <Action>(MethodDown)
+nnoremap [[ :action MethodUp<CR>
+nnoremap ]] :action MethodDown<CR>
 
 " Easy visual indentation
 vnoremap < <gv
@@ -133,15 +133,15 @@ vnoremap > >gv
 nnoremap qj @q
 
 " Popup navigation
-inoremap <C-j> <Action>(PopupMenu-selectNext)
-inoremap <C-k> <Action>(PopupMenu-selectPrev)
+inoremap <C-j> :action PopupMenu-selectNext<CR>
+inoremap <C-k> :action PopupMenu-selectPrev<CR>
 
 
 "" Leader commands
 "" ========================================================
 
 " Comment lines
-map <leader>c <action>(CommentByLineComment)
+map <leader>c :action CommentByLineComment<CR>
 
 " Jump around with easymotion
 map <leader>j <Plug>(easymotion-s)
@@ -154,54 +154,54 @@ map <leader>zc :action CollapseAllRegions<CR>
 map <leader>zo :action ExpandAllRegions<CR>
 
 " Window splits
-map <leader>wv <Action>(SplitVertically)
-map <leader>ws <Action>(SplitHorizontally)
-map <leader>wu <Action>(Unsplit)
-map <leader>wm <Action>(MoveEditorToOppositeTabGroup)
+map <leader>wv :action SplitVertically<CR>
+map <leader>ws :action SplitHorizontally<CR>
+map <leader>wu :action Unsplit<CR>
+map <leader>wm :action MoveEditorToOppositeTabGroup<CR>
 
 " Display options
-map <leader>dd <action>(ToggleDistractionFreeMode)
-map <leader>dz <action>(ToggleZenMode)
-map <leader>df <action>(ToggleFullScreen)
+map <leader>dd :action ToggleDistractionFreeMode<CR>
+map <leader>dz :action ToggleZenMode<CR>
+map <leader>df :action ToggleFullScreen<CR>
 
 " Actions
-map <leader>am <action>(ShowIntentionActions)
-map <leader>as <action>(SearchEverywhere)
+map <leader>am :action ShowIntentionActions<CR>
+map <leader>as :action SearchEverywhere<CR>
 
 " File navigation
-map <leader>ff <action>(GotoFile)
-map <leader>fr <action>(RecentFiles)
-map <leader>fc <action>(FindInPath)
-map <leader><leader> <Action>(RecentFiles)
-map <leader>fl <action>(RecentLocations)
-map <leader>fs <action>(NewScratchFile)
+map <leader>ff :action GotoFile<CR>
+map <leader>fr :action RecentFiles<CR>
+map <leader>fc :action FindInPath<CR>
+map <leader><leader> :action RecentFiles<CR>
+map <leader>fl :action RecentLocations<CR>
+map <leader>fs :action NewScratchFile
 
 " Close active tab
-map <leader>q <action>(CloseContent)
+map <leader>q :action CloseContent
 
 " Refactoring
-map <leader>rn <Action>(RenameElement)
-map <leader>rm <Action>(ExtractMethod)
-map <leader>rv <Action>(IntroduceVariable)
-map <leader>rf <Action>(IntroduceField)
-map <leader>rs <Action>(ChangeSignature)
-map <leader>rr <Action>(Refactorings.QuickListPopupAction)
+map <leader>rn :action RenameElement
+map <leader>rm :action ExtractMethod
+map <leader>rv :action IntroduceVariable
+map <leader>rf :action IntroduceField
+map <leader>rs :action ChangeSignature
+map <leader>rr :action Refactorings.QuickListPopupAction
 
 " Go to code
-nmap <leader>gd <Action>(GotoDeclaration)
-nmap <leader>gy <Action>(GotoTypeDeclaration)
-nmap <leader>gi <Action>(GotoImplementation)
-nmap <leader>gu <Action>(ShowUsages)
-nmap <leader>gt <Action>(GotoTest)
-nmap <leader>gf <Action>(Back)
-nmap <leader>gb <Action>(Forward)
+nmap <leader>gd :action GotoDeclaration
+nmap <leader>gy :action GotoTypeDeclaration
+nmap <leader>gi :action GotoImplementation
+nmap <leader>gu :action ShowUsages
+nmap <leader>gt :action GotoTest
+nmap <leader>gf :action Back
+nmap <leader>gb :action Forward
 
 " Git windows
-map <leader>gc <Action>(CheckinProject)
-map <leader>gs <Action>(ActivateVersionControlToolWindow)
-map <leader>gb <Action>(Git.Branches)
+map <leader>gc :action CheckinProject
+map <leader>gs :action ActivateVersionControlToolWindow
+map <leader>gb :action Git.Branches
 
 " Errors
-map <leader>en <Action>(ReSharperGotoNextErrorInSolution)
-map <leader>ep <Action>(ReSharperGotoPrevErrorInSolution)
+map <leader>en :action ReSharperGotoNextErrorInSolution
+map <leader>ep :action ReSharperGotoPrevErrorInSolution
 
