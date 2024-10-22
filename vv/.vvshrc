@@ -1,0 +1,68 @@
+export VAGRANT_DEFAULT_PROVIDER=parallels
+
+javahome() {
+  unset JAVA_HOME
+  export JAVA_HOME=$(/usr/libexec/java_home -v "$1");
+  java -version
+}
+
+alias j1.8='javahome 1.8'
+alias j11='javahome 11'
+alias j17='javahome 17';
+alias j19='javahome 19'
+
+# log file servers - we sometimes do not have rights on the machines directly
+alias ssh-log01="ssh truehl@log.tech.visualvest.de"    # service logs
+alias ssh-log02="ssh truehl@log02.tech.visualvest.de"  # nginx etc
+
+alias ssh-fs01q="ssh truehl@fs01q.tech.visualvest.de"
+alias ssh-fs02q="ssh truehl@fs02q.tech.visualvest.de"
+
+alias ssh-int01q="ssh truehl@int01q.tech.visualvest.de"
+alias ssh-int02q="ssh truehl@int02q.tech.visualvest.de"
+
+alias ssh-fe01e="ssh truehl@fe01e.tech.visualvest.de"
+alias ssh-fs01e="ssh truehl@fs01e.tech.visualvest.de"
+alias sftp-fs01e="sftp truehl@fs01e.tech.visualvest.de"
+alias ssh-int01e="ssh truehl@int01e.tech.visualvest.de"
+alias sftp-int01e="sftp truehl@int01e.tech.visualvest.de"
+alias ssh-dc01e="ssh truehl@dc01e.tech.visualvest.de"
+alias ssh-dc02e="ssh truehl@dc02e.tech.visualvest.de"
+
+alias ssh-dc02q="ssh truehl@dc02q.tech.visualvest.de"
+
+# deploy of component to vagrant / wilfdfly
+alias wf_deploy_functional="mvn clean -DskipTests=true package wildfly:deploy -Pfunctional"
+alias wf_deploy_integration="mvn clean -DskipTests=true package wildfly:deploy -Pintegration"
+
+alias tunnel_vagrant_e="ssh -L 5433:localhost:5432 truehl@db01e.tech.visualvest.de"
+alias tunnel_e="ssh -L 54323:localhost:5432 truehl@db01e.tech.visualvest.de"
+alias tunnel_q="ssh -L 54324:localhost:5432 truehl@db01q.tech.visualvest.de"
+
+alias cd-services="cd /Users/thorstenruhl/IdeaProjects/VV/SD-Depot/service"
+alias cd-orderfs="cd /Users/thorstenruhl/IdeaProjects/VV/SD-Depot/service/order-functional-service-wt"
+
+alias arm64="/usr/bin/arch -arm64 /bin/zsh --login"
+singletest() {
+ mvn -Dit.test=$1 verify;
+}
+alias dit='singletest'
+
+
+call_depot_performance CURRENT_YEAR ABSOLUTE 
+
+# resetting terminal color, sometimes gets a bit distorted
+alias reset_color='tput sgr0'
+
+# show the effective pom plus markers where which entry was coming from 
+alias eff-pom='mvn help:effective-pom -Dverbose=true'
+
+# DEFAULT java version
+j17
+
+# directory shorcuts 
+
+alias kill-teams='pkill -9 Teams'
+alias to-depot='cd /Users/thorstenruhl/IdeaProjects/VV/SD-Depot/service'
+
+alias docker_show_ips="docker ps -q | xargs -n 1 docker inspect --format '{{ .Name }}: {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'"
