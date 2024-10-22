@@ -5,7 +5,7 @@
 "" ========================================================
 
 set scrolloff=10
-set linenumber
+set rnu
 set showmode
 set showcmd
 
@@ -47,7 +47,7 @@ let g:WhichKeyDesc_leader = "<leader>x Open file explorer"
 let g:WhichKeyDesc_easymotion = "<leader>j Jump with Easymotion"
 let g:WhichKeyDesc_easymotion_prefix = "<leader><leader>"
 
-let g:WhichKeyDesc_comment = "<leader>c Comment line"
+let g:WhichKeyDesc_comment = "<leader>cc Comment line"
 
 let g:WhichKeyDesc_fold = "<leader>z Folding"
 let g:WhichKeyDesc_fold_all = "<leader>zc Fold all regions"
@@ -112,14 +112,14 @@ let g:WhichKeyDesc_errors_prev = "<leader>ep Go to previous error in solution"
 inoremap jk <Esc>
 
 " Tab navigation
-nnoremap <C-A-o> :tabnext<CR>
-nnoremap <C-A-i> :tabprev<CR>
+nnoremap <D-A-o> :tabnext<CR>
+nnoremap <D-A-i> :tabprev<CR>
 
 " Pane navigation
-nnoremap <C-A-h> <C-w>h
-nnoremap <C-A-l> <C-w>l
-nnoremap <C-A-k> <C-w>k
-nnoremap <C-A-j> <C-w>j
+nnoremap <D-A-h> <C-w>h
+nnoremap <D-A-l> <C-w>l
+nnoremap <D-A-k> <C-w>k
+nnoremap <D-A-j> <C-w>j
 
 " Jump between methods
 nnoremap [[ :action MethodUp<CR>>
@@ -141,7 +141,9 @@ inoremap <C-k> :action PopupMenu-selectPrev<CR>
 "" ========================================================
 
 " Comment lines
-map <leader>c :action CommentByLineComment<CR>
+map <leader>cc :action CommentByLineComment<CR>
+map <leader>cl :action ReformatCode<CR>
+map <leader>co :action OptimizeImports<CR>
 
 " Jump around with easymotion but prevent it from addint its own default key
 " mappings as this could collide with our custom mappings 
