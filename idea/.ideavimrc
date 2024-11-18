@@ -42,7 +42,9 @@ let g:WhichKey_SortOrder = "by_key_prefix_first"
 
 let g:WhichKeyDesc_leader = "<leader> Leader key"
 
-let g:WhichKeyDesc_leader = "<leader>x Open file explorer"
+let g:WhichKeyDesc_leader = "<leader>ex Open NerdTree File Explorer"
+let g:WhichKeyDesc_leader = "<leader>ec Close NerdTree File Explorer"
+let g:WhichKeyDesc_leader = "<leader>ef Open NerdTree select CurrFile"
 
 let g:WhichKeyDesc_easymotion = "<leader>j Jump with Easymotion"
 let g:WhichKeyDesc_easymotion_prefix = "<leader><leader>"
@@ -151,7 +153,10 @@ let g:EasyMotion_do_mapping = 0
 map <leader>j <Plug>(easymotion-s)
 
 " Open NERDTree (use q to exit)
-map <leader>x :NERDTreeToggle<CR>
+map <leader>ee :NERDTreeToggle<CR>
+map <leader>ec :NERDTreeClose<CR>
+map <leader>ef :NERDTreeFind<CR>
+
 
 " Folding
 map <leader>zc :action CollapseAllRegions<CR>
