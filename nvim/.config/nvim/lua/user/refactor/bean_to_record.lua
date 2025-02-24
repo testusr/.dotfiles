@@ -16,6 +16,7 @@ local function get_lsp_client()
 			return client
 		end
 	end
+	vim.notify("No jdtls client found", vim.log.levels.ERROR)
 	return nil
 end
 
@@ -33,10 +34,27 @@ local function find_references(class_name, bufnr, position)
 		context = { includeDeclaration = false }, -- Exclude the class declaration itself
 	}
 
-	local result = client.request_sync("textDocument/references", params, 1000, bufnr)
-	if result and result.result then
+	vim.notify(
+		"Requesting references for "
+			.. class_name
+			.. " at line "
+			.. (position.line + 1)
+			.. ", col "
+			.. (position.character + 1),
+		vim.log.levels.INFO
+	)
+	local result = client.request_sync("textDocument/references", params, 2000, bufnr)
+	if not result then
+		vim.notify("LSP request failed or timed out", vim.log.levels.ERROR)
+		return {}
+	elseif result.err then
+		vim.notify("LSP error: " .. vim.inspect(result.err), vim.log.levels.ERROR)
+		return {}
+	elseif result.result then
+		vim.notify("Found " .. #result.result .. " references", vim.log.levels.INFO)
 		return result.result
 	end
+	vim.notify("No references returned by LSP", vim.log.levels.WARN)
 	return {}
 end
 
@@ -96,8 +114,8 @@ M.convert_bean_to_record_with_builder = function(class_name)
 	local methods = {}
 	local package_line = ""
 	local imports = {}
-	local seen_fields = {} -- To prevent duplicate fields
-	local seen_methods = {} -- To prevent duplicate methods
+	local seen_fields = {}
+	local seen_methods = {}
 
 	for id, node, _ in query:iter_captures(tree:root(), bufnr) do
 		local capture_name = query.captures[id]
@@ -121,25 +139,23 @@ M.convert_bean_to_record_with_builder = function(class_name)
 				seen_fields[text] = true
 			end
 		elseif capture_name == "method_name" then
-			-- Exclude getters and setters
-			if not (text:match("^get[A-Z]") or text:match("^set[A-Z]") or text:match("^is[A-Z]")) then
+			-- Exclude getters and setters (relaxed pattern: get/set/is followed by any character)
+			if not (text:match("^get.") or text:match("^set.") or text:match("^is.")) then
 				local method_node = node:parent()
 				local params = ts.get_node_text(method_node:child(3), bufnr) or "()"
 				local return_type = ts.get_node_text(method_node:child(1), bufnr)
 				local body = ts.get_node_text(method_node:child(4), bufnr) or "{ }"
-				local method_key = text .. params -- Unique key for method signature
+				local method_key = text .. params
 				if not seen_methods[method_key] then
 					local body_lines = vim.split(body, "\n", { plain = true, trimempty = true })
-					-- Remove leading and trailing lines that are only braces
 					if #body_lines > 0 and body_lines[1]:match("^%s*{$") then
 						table.remove(body_lines, 1)
 					end
 					if #body_lines > 0 and body_lines[#body_lines]:match("^%s*}$") then
 						table.remove(body_lines, #body_lines)
 					end
-					-- Indent the remaining lines
 					for i, line in ipairs(body_lines) do
-						body_lines[i] = "        " .. line:gsub("^%s+", "") -- Remove leading whitespace and indent
+						body_lines[i] = "        " .. line:gsub("^%s+", "")
 					end
 					table.insert(methods, {
 						signature = "    public " .. return_type .. " " .. text .. params,
@@ -259,14 +275,15 @@ M.convert_and_update_references = function(class_name)
 		return
 	end
 
-	-- LSP positions are 0-based
-	local position = { line = class_node:start(), character = 0 }
+	-- Use the exact position of the class name identifier
+	local start_row, start_col = class_node:start()
+	local position = { line = start_row, character = start_col }
+	vim.notify("Querying references at line " .. (start_row + 1) .. ", col " .. (start_col + 1), vim.log.levels.INFO)
 
 	-- Get all references via LSP before conversion
 	local references = find_references(class_name, bufnr, position)
 	if #references == 0 then
 		vim.notify("No references found for " .. class_name, vim.log.levels.WARN)
-		-- Proceed with conversion even if no references are found
 	end
 
 	-- Perform the conversion to record
@@ -302,11 +319,15 @@ M.update_usages_in_buffer = function(class_name, bufnr)
             (method_invocation
                 object: (identifier) @obj
                 name: (identifier) @method_name
-                (#match? @method_name "^set[A-Z]")) @setter
+                (#match? @method_name "^set.")) @setter
             (method_invocation
                 object: (identifier) @obj
                 name: (identifier) @method_name
-                (#match? @method_name "^get[A-Z]|is[A-Z]")) @getter
+                (#match? @method_name "^get.")) @getter_regular
+            (method_invocation
+                object: (identifier) @obj
+                name: (identifier) @method_name
+                (#match? @method_name "^is.")) @getter_is
         ]]
 	)
 
@@ -331,22 +352,23 @@ M.update_usages_in_buffer = function(class_name, bufnr)
 			local obj_name = ts.get_node_text(node:child(0), bufnr)
 			local method_name = ts.get_node_text(node:child(2), bufnr)
 			local args = ts.get_node_text(node:child(3), bufnr):sub(2, -2) -- Strip parentheses
-			local field_name = method_name:sub(4):lower() .. method_name:sub(5)
+			local field_name = method_name:sub(4) -- Simply take everything after "set"
+			local cap_field_name = field_name:sub(1, 1):upper() .. field_name:sub(2)
 			local new_text = obj_name
 				.. " = "
 				.. obj_name
 				.. ".toBuilder().with"
-				.. field_name:sub(1, 1):upper()
-				.. field_name:sub(2)
+				.. cap_field_name
 				.. "("
 				.. args
 				.. ").build()"
 			changes[row + 1] = { start_col = col, end_col = end_col, text = new_text }
-		elseif capture_name == "getter" then
+		elseif capture_name == "getter_regular" or capture_name == "getter_is" then
 			local obj_name = ts.get_node_text(node:child(0), bufnr)
 			local method_name = ts.get_node_text(node:child(2), bufnr)
-			local field_name = method_name:match("^is") and method_name:sub(3) or method_name:sub(4)
-			field_name = field_name:lower() .. field_name:sub(2)
+			local prefix_length = method_name:match("^is") and 3 or 4 -- "is" is 2 chars + 1, "get" is 3 chars + 1
+			local field_name = method_name:sub(prefix_length)
+			field_name = field_name:sub(1, 1):lower() .. field_name:sub(2) -- Lowercase first letter
 			changes[row + 1] = { start_col = col, end_col = end_col, text = obj_name .. "." .. field_name .. "()" }
 		end
 		::continue::
