@@ -1,241 +1,366 @@
 local M = {}
 
 local ts = vim.treesitter
-local telescope = require("telescope.builtin")
-
--- Find beans in the current buffer
-M.find_beans = function()
-	local bufnr = vim.api.nvim_get_current_buf()
-	local parser = ts.get_parser(bufnr, "java")
-	local tree = parser:parse()[1]
-
-	local query_str =
-		table.concat(vim.fn.readfile("/Users/thorstenruhl/.dotfiles/nvim/.config/nvim/queries/java/beans.scm"), "\n")
-	local query = ts.query.parse("java", query_str)
-
-	local beans = {}
-	local seen_classes = {}
-
-	for id, node, _ in query:iter_captures(tree:root(), bufnr) do
-		-- Check if the node is inside a class_declaration
-		local parent = node:parent()
-		if parent and parent:type() == "class_declaration" and node:type() == "identifier" then
-			local class_name = ts.get_node_text(node, bufnr)
-			if not seen_classes[class_name] then
-				vim.print("Found bean class:", class_name)
-				seen_classes[class_name] = true
-				table.insert(beans, class_name)
-			end
-		end
-	end
-
-	vim.print("Final list of beans:", beans)
-	return beans
-end
--- Your provided function, now part of the module
-M.convert_bean_to_record_with_builder = function(class_name)
-	local bufnr = vim.api.nvim_get_current_buf()
-	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-	local fields = {}
-	local class_start, class_end = nil, nil
-	local methods_start, methods_end = nil, nil
-
-	-- Parse fields and locate methods
-	for i, line in ipairs(lines) do
-		if line:match("class%s+" .. class_name) then
-			class_start = i - 1
-		elseif class_start and line:match("private%s+%w+%s+%w+%s*;") then
-			local type, name = line:match("private%s+(%w+)%s+(%w+)%s*;")
-			table.insert(fields, { type = type, name = name })
-		elseif class_start and line:match("public%s+%w+%s+get[A-Z]%w*%(%)") then
-			methods_start = i - 1
-		elseif methods_start and line:match("}") then
-			methods_end = i -- Capture the last method
-		end
-	end
-
-	if not class_start or not methods_end then
-		vim.notify("Could not parse class " .. class_name, vim.log.levels.ERROR)
-		return
-	end
-
-	-- Generate record with builder
-	local record_lines = {
-		"public record " .. class_name .. "(" .. table.concat(
-			vim.tbl_map(function(f)
-				return f.type .. " " .. f.name
-			end, fields),
-			", "
-		) .. ") {",
-		"  public static Builder builder() { return new Builder(); }",
-		"  public Builder toBuilder() {",
-		"    Builder builder = new Builder();",
-	}
-	for _, field in ipairs(fields) do
-		table.insert(record_lines, "    builder." .. field.name .. "(" .. field.name .. ");")
-	end
-	table.insert(record_lines, "    return builder;")
-	table.insert(record_lines, "  }")
-	table.insert(record_lines, "  public static class Builder {")
-	for _, field in ipairs(fields) do
-		table.insert(record_lines, "    private " .. field.type .. " " .. field.name .. ";")
-	end
-	for _, field in ipairs(fields) do
-		table.insert(
-			record_lines,
-			"    public Builder " .. field.name .. "(" .. field.type .. " " .. field.name .. ") {"
-		)
-		table.insert(record_lines, "      this." .. field.name .. " = " .. field.name .. ";")
-		table.insert(record_lines, "      return this;")
-		table.insert(record_lines, "    }")
-	end
-	table.insert(record_lines, "    public " .. class_name .. " build() {")
-	table.insert(record_lines, "      return new " .. class_name .. "(" .. table.concat(
-		vim.tbl_map(function(f)
-			return f.name
-		end, fields),
-		", "
-	) .. ");")
-	table.insert(record_lines, "    }")
-	table.insert(record_lines, "  }")
-	table.insert(record_lines, "}")
-
-	-- Replace old class and methods with the new record
-	vim.api.nvim_buf_set_lines(bufnr, class_start, methods_end + 1, false, record_lines)
-	vim.lsp.buf.format()
-end
-
--- Update bean usages
-M.update_usages = function(class_name)
-	-- Request all references from LSP
-	local params = {
-		textDocument = { uri = vim.uri_from_bufnr(0) },
-		position = { line = 0, character = 0 }, -- Start search from top of file
-		context = { includeDeclaration = false }, -- Ignore class definition
-	}
-
-	vim.lsp.buf_request(0, "textDocument/references", params, function(err, result, ctx, _)
-		if err then
-			vim.notify("LSP error while finding references: " .. err.message, vim.log.levels.ERROR)
-			return
-		end
-
-		if not result or #result == 0 then
-			vim.notify("No references found for " .. class_name, vim.log.levels.WARN)
-			return
-		end
-
-		local references = {}
-		for _, ref in ipairs(result) do
-			local uri = ref.uri
-			local bufnr = vim.uri_to_bufnr(uri)
-
-			if not vim.api.nvim_buf_is_loaded(bufnr) then
-				vim.fn.bufload(bufnr) -- Load buffer if not already loaded
-			end
-
-			table.insert(references, { bufnr = bufnr, range = ref.range })
-		end
-
-		local replacements = {}
-
-		-- Process each file containing references
-		for _, ref in ipairs(references) do
-			local bufnr = ref.bufnr
-
-			-- Save the current undo option
-			local original_undofile = vim.api.nvim_buf_get_option(bufnr, "undofile")
-
-			-- Temporarily disable undo file
-			vim.api.nvim_buf_set_option(bufnr, "undofile", false)
-
-			local parser = ts.get_parser(bufnr, "java")
-			local tree = parser:parse()[1]
-
-			local query_path = vim.fn.expand("~/.dotfiles/nvim/.config/nvim/queries/java/bean_usage.scm")
-			local success, query_data = pcall(vim.fn.readfile, query_path)
-
-			if not success then
-				vim.notify("Failed to read Treesitter query file: " .. query_path, vim.log.levels.ERROR)
-				return
-			end
-
-			local query = ts.query.parse("java", table.concat(query_data, "\n"))
-
-			-- Iterate over all setter calls in the reference file
-			for _, node, _ in query:iter_captures(tree:root(), bufnr) do
-				local method_node = node:named_child(1)
-				if method_node == nil then
-					vim.print("Skipping node, no method name found")
-					goto continue
-				end
-
-				local method_name = ts.get_node_text(method_node, bufnr)
-				local start_row, start_col, end_row, end_col = node:range()
-
-				-- Handle setter replacements
-				if method_name:match("^set[A-Z]") then
-					local field_node = node:named_child(2)
-					if field_node == nil then
-						vim.print("Skipping setter, no field node found")
-						goto continue
-					end
-
-					local field_name = method_name:sub(4, 4):lower() .. method_name:sub(5) -- Convert to camelCase
-					local instance_node = node:named_child(0)
-					if instance_node == nil then
-						vim.print("Skipping setter, no instance node found")
-						goto continue
-					end
-
-					local instance_name = ts.get_node_text(instance_node, bufnr)
-					local arg = ts.get_node_text(field_node:named_child(0), bufnr)
-
-					-- Replace with builder pattern
-					table.insert(replacements, {
-						row = start_row,
-						col = start_col,
-						end_row = end_row,
-						end_col = end_col,
-						text = instance_name
-							.. " = "
-							.. instance_name
-							.. ".toBuilder()"
-							.. "."
-							.. field_name
-							.. "("
-							.. arg
-							.. ").build();",
-					})
-				end
-
-				::continue::
-			end
-
-			-- Apply all replacements in the file
-			for _, rep in ipairs(replacements) do
-				vim.api.nvim_buf_set_text(bufnr, rep.row, rep.col, rep.end_row, rep.end_col, { rep.text })
-			end
-
-			-- Save the file after modifications
-			vim.api.nvim_buf_call(bufnr, function()
-				vim.cmd("write")
-			end)
-
-			-- Restore the original undo file setting
-			vim.api.nvim_buf_set_option(bufnr, "undofile", original_undofile)
-		end
-
-		vim.notify("Usages updated across all project files!", vim.log.levels.INFO)
-	end)
-end
--- Interactive selection with Telescope
+local api = vim.api
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
 local conf = require("telescope.config").values
 
+-- Helper function to get the LSP client for Java
+local function get_lsp_client()
+	local clients = vim.lsp.get_active_clients()
+	for _, client in ipairs(clients) do
+		if client.name == "jdtls" then -- Adjust for your Java LSP server
+			return client
+		end
+	end
+	return nil
+end
+
+-- Find all references to the bean class using LSP
+local function find_references(class_name, bufnr, position)
+	local client = get_lsp_client()
+	if not client then
+		vim.notify("No LSP client found for Java", vim.log.levels.WARN)
+		return {}
+	end
+
+	local params = {
+		textDocument = vim.lsp.util.make_text_document_params(bufnr),
+		position = position,
+		context = { includeDeclaration = false }, -- Exclude the class declaration itself
+	}
+
+	local result = client.request_sync("textDocument/references", params, 1000, bufnr)
+	if result and result.result then
+		return result.result
+	end
+	return {}
+end
+
+-- Find beans (class names) in the current buffer
+M.find_beans = function()
+	local bufnr = api.nvim_get_current_buf()
+	local parser = ts.get_parser(bufnr, "java")
+	local tree = parser:parse()[1]
+
+	local query = ts.query.parse(
+		"java",
+		[[
+            (class_declaration
+                name: (identifier) @class_name)
+        ]]
+	)
+
+	local beans = {}
+	for id, node in query:iter_captures(tree:root(), bufnr) do
+		if query.captures[id] == "class_name" then
+			local class_name = ts.get_node_text(node, bufnr)
+			table.insert(beans, class_name)
+		end
+	end
+	return beans
+end
+
+-- Convert a bean class to a record with builder
+M.convert_bean_to_record_with_builder = function(class_name)
+	local bufnr = vim.api.nvim_get_current_buf()
+	local parser = ts.get_parser(bufnr, "java")
+	local tree = parser:parse()[1]
+
+	local query = ts.query.parse(
+		"java",
+		[[
+            (package_declaration (scoped_identifier) @package)
+            (import_declaration (scoped_identifier) @import)
+            (class_declaration
+                name: (identifier) @class_name
+                body: (class_body
+                    (field_declaration
+                        (modifiers)? @modifiers
+                        type: (_) @field_type
+                        (variable_declarator name: (identifier) @field_name))
+                    (method_declaration
+                        (modifiers)? @method_modifiers
+                        type: (_) @method_type
+                        name: (identifier) @method_name
+                        parameters: (formal_parameters) @method_params
+                        body: (block) @method_body))
+            )
+        ]]
+	)
+
+	local fields = {}
+	local methods = {}
+	local package_line = ""
+	local imports = {}
+	local seen_fields = {} -- To prevent duplicate fields
+	local seen_methods = {} -- To prevent duplicate methods
+
+	for id, node, _ in query:iter_captures(tree:root(), bufnr) do
+		local capture_name = query.captures[id]
+		local text = ts.get_node_text(node, bufnr)
+
+		if capture_name == "package" then
+			package_line = "package " .. text .. ";"
+		elseif capture_name == "import" then
+			table.insert(imports, "import " .. text .. ";")
+		elseif capture_name == "class_name" and text ~= class_name then
+			goto continue
+		elseif capture_name == "field_name" then
+			if not seen_fields[text] then
+				local parent = node:parent():parent()
+				local field_type_node = parent:child(1)
+				if field_type_node and field_type_node:type() == "modifiers" then
+					field_type_node = parent:child(2)
+				end
+				local field_type = ts.get_node_text(field_type_node, bufnr)
+				table.insert(fields, { type = field_type, name = text })
+				seen_fields[text] = true
+			end
+		elseif capture_name == "method_name" then
+			-- Exclude getters and setters
+			if not (text:match("^get[A-Z]") or text:match("^set[A-Z]") or text:match("^is[A-Z]")) then
+				local method_node = node:parent()
+				local params = ts.get_node_text(method_node:child(3), bufnr) or "()"
+				local return_type = ts.get_node_text(method_node:child(1), bufnr)
+				local body = ts.get_node_text(method_node:child(4), bufnr) or "{ }"
+				local method_key = text .. params -- Unique key for method signature
+				if not seen_methods[method_key] then
+					local body_lines = vim.split(body, "\n", { plain = true, trimempty = true })
+					-- Remove leading and trailing lines that are only braces
+					if #body_lines > 0 and body_lines[1]:match("^%s*{$") then
+						table.remove(body_lines, 1)
+					end
+					if #body_lines > 0 and body_lines[#body_lines]:match("^%s*}$") then
+						table.remove(body_lines, #body_lines)
+					end
+					-- Indent the remaining lines
+					for i, line in ipairs(body_lines) do
+						body_lines[i] = "        " .. line:gsub("^%s+", "") -- Remove leading whitespace and indent
+					end
+					table.insert(methods, {
+						signature = "    public " .. return_type .. " " .. text .. params,
+						body_lines = body_lines,
+					})
+					seen_methods[method_key] = true
+				end
+			end
+		end
+		::continue::
+	end
+
+	if #fields == 0 then
+		vim.notify("No fields found for " .. class_name, vim.log.levels.ERROR)
+		return
+	end
+
+	local record_lines = {}
+	if package_line ~= "" then
+		table.insert(record_lines, package_line)
+		table.insert(record_lines, "")
+	end
+	for _, import in ipairs(imports) do
+		table.insert(record_lines, import)
+	end
+	if #imports > 0 then
+		table.insert(record_lines, "")
+	end
+
+	table.insert(record_lines, "public record " .. class_name .. "(")
+	for i, field in ipairs(fields) do
+		table.insert(record_lines, "    " .. field.type .. " " .. field.name .. (i < #fields and "," or ""))
+	end
+	table.insert(record_lines, ") {")
+	table.insert(record_lines, "")
+
+	for _, method in ipairs(methods) do
+		table.insert(record_lines, method.signature .. " {")
+		for _, body_line in ipairs(method.body_lines) do
+			table.insert(record_lines, body_line)
+		end
+		table.insert(record_lines, "    }")
+		table.insert(record_lines, "")
+	end
+
+	table.insert(record_lines, "    public Builder toBuilder() { return new Builder(this); }")
+	table.insert(record_lines, "    public static Builder builder() { return new Builder(); }")
+	table.insert(record_lines, "")
+
+	table.insert(record_lines, "    public static final class Builder {")
+	for _, field in ipairs(fields) do
+		table.insert(record_lines, "        private " .. field.type .. " " .. field.name .. ";")
+	end
+	table.insert(record_lines, "")
+	table.insert(record_lines, "        private Builder() {}")
+	table.insert(record_lines, "        private Builder(" .. class_name .. " record) {")
+	for _, field in ipairs(fields) do
+		table.insert(record_lines, "            this." .. field.name .. " = record." .. field.name .. ";")
+	end
+	table.insert(record_lines, "        }")
+	table.insert(record_lines, "")
+
+	for _, field in ipairs(fields) do
+		local cap_name = field.name:sub(1, 1):upper() .. field.name:sub(2)
+		table.insert(
+			record_lines,
+			"        public Builder with" .. cap_name .. "(" .. field.type .. " " .. field.name .. ") {"
+		)
+		table.insert(record_lines, "            this." .. field.name .. " = " .. field.name .. ";")
+		table.insert(record_lines, "            return this;")
+		table.insert(record_lines, "        }")
+		table.insert(record_lines, "")
+	end
+
+	table.insert(record_lines, "        public " .. class_name .. " build() {")
+	table.insert(record_lines, "            return new " .. class_name .. "(" .. table.concat(
+		vim.tbl_map(function(f)
+			return f.name
+		end, fields),
+		", "
+	) .. ");")
+	table.insert(record_lines, "        }")
+	table.insert(record_lines, "    }")
+	table.insert(record_lines, "}")
+
+	api.nvim_buf_set_lines(bufnr, 0, -1, false, record_lines)
+end
+
+-- Main function to process the bean-to-record conversion and update references
+M.convert_and_update_references = function(class_name)
+	local bufnr = api.nvim_get_current_buf()
+	local parser = ts.get_parser(bufnr, "java")
+	local tree = parser:parse()[1]
+
+	-- Find the class declaration position for LSP before conversion
+	local query_class = ts.query.parse(
+		"java",
+		[[
+            (class_declaration
+                name: (identifier) @class_name)
+        ]]
+	)
+
+	local class_node
+	for id, node in query_class:iter_captures(tree:root(), bufnr) do
+		if query_class.captures[id] == "class_name" then
+			local node_text = ts.get_node_text(node, bufnr)
+			if node_text == class_name then
+				class_node = node
+				break
+			end
+		end
+	end
+
+	if not class_node then
+		vim.notify("Class " .. class_name .. " not found in current buffer", vim.log.levels.ERROR)
+		return
+	end
+
+	-- LSP positions are 0-based
+	local position = { line = class_node:start(), character = 0 }
+
+	-- Get all references via LSP before conversion
+	local references = find_references(class_name, bufnr, position)
+	if #references == 0 then
+		vim.notify("No references found for " .. class_name, vim.log.levels.WARN)
+		-- Proceed with conversion even if no references are found
+	end
+
+	-- Perform the conversion to record
+	M.convert_bean_to_record_with_builder(class_name)
+
+	-- Process each reference after conversion
+	for _, ref in ipairs(references) do
+		local uri = ref.uri
+		local ref_bufnr = vim.uri_to_bufnr(uri)
+
+		-- Load the buffer if not already loaded
+		if not api.nvim_buf_is_loaded(ref_bufnr) then
+			api.nvim_command("badd " .. vim.uri_to_fname(uri))
+		end
+
+		-- Update the usages in this buffer
+		M.update_usages_in_buffer(class_name, ref_bufnr)
+	end
+end
+
+-- Update usages in a specific buffer
+M.update_usages_in_buffer = function(class_name, bufnr)
+	local parser = ts.get_parser(bufnr, "java")
+	local tree = parser:parse()[1]
+	local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
+
+	local query = ts.query.parse(
+		"java",
+		[[
+            (object_creation_expression
+                type: (type_identifier) @class_name)
+            @creation
+            (method_invocation
+                object: (identifier) @obj
+                name: (identifier) @method_name
+                (#match? @method_name "^set[A-Z]")) @setter
+            (method_invocation
+                object: (identifier) @obj
+                name: (identifier) @method_name
+                (#match? @method_name "^get[A-Z]|is[A-Z]")) @getter
+        ]]
+	)
+
+	local changes = {}
+	for id, node in query:iter_captures(tree:root(), bufnr) do
+		local capture_name = query.captures[id]
+		local row, col = node:start()
+		local end_row, end_col = node:end_()
+
+		if capture_name == "class_name" then
+			local text = ts.get_node_text(node, bufnr)
+			if text ~= class_name then
+				goto continue
+			end
+		elseif capture_name == "creation" then
+			changes[row + 1] = {
+				start_col = col,
+				end_col = end_col,
+				text = class_name .. ".builder().build()",
+			}
+		elseif capture_name == "setter" then
+			local obj_name = ts.get_node_text(node:child(0), bufnr)
+			local method_name = ts.get_node_text(node:child(2), bufnr)
+			local args = ts.get_node_text(node:child(3), bufnr):sub(2, -2) -- Strip parentheses
+			local field_name = method_name:sub(4):lower() .. method_name:sub(5)
+			local new_text = obj_name
+				.. " = "
+				.. obj_name
+				.. ".toBuilder().with"
+				.. field_name:sub(1, 1):upper()
+				.. field_name:sub(2)
+				.. "("
+				.. args
+				.. ").build()"
+			changes[row + 1] = { start_col = col, end_col = end_col, text = new_text }
+		elseif capture_name == "getter" then
+			local obj_name = ts.get_node_text(node:child(0), bufnr)
+			local method_name = ts.get_node_text(node:child(2), bufnr)
+			local field_name = method_name:match("^is") and method_name:sub(3) or method_name:sub(4)
+			field_name = field_name:lower() .. field_name:sub(2)
+			changes[row + 1] = { start_col = col, end_col = end_col, text = obj_name .. "." .. field_name .. "()" }
+		end
+		::continue::
+	end
+
+	for line_num, change in pairs(changes) do
+		lines[line_num] = lines[line_num]:sub(1, change.start_col)
+			.. change.text
+			.. lines[line_num]:sub(change.end_col + 1)
+	end
+	api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+end
+
+-- Interactive selection with Telescope
 M.select_beans_to_convert = function()
 	local beans = M.find_beans()
 	if #beans == 0 then
@@ -246,17 +371,14 @@ M.select_beans_to_convert = function()
 	pickers
 		.new({}, {
 			prompt_title = "Select Beans to Convert to Records",
-			finder = finders.new_table({
-				results = beans,
-			}),
+			finder = finders.new_table({ results = beans }),
 			sorter = conf.generic_sorter({}),
 			attach_mappings = function(prompt_bufnr, map)
 				actions.select_default:replace(function()
 					actions.close(prompt_bufnr)
 					local selection = action_state.get_selected_entry()
 					if selection then
-						M.convert_bean_to_record_with_builder(selection[1])
-						M.update_usages(selection[1])
+						M.convert_and_update_references(selection[1])
 					end
 				end)
 				return true
