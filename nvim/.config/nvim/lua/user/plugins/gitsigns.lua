@@ -1,6 +1,26 @@
 return {
 	"lewis6991/gitsigns.nvim",
 	event = { "BufReadPre", "BufNewFile" },
+	keys = {
+		-- Navigation
+		{
+			"]h",
+			function()
+				require("gitsigns").next_hunk()
+			end,
+			desc = "Next hunk",
+		},
+		{
+			"[h",
+			function()
+				require("gitsigns").prev_hunk()
+			end,
+			desc = "Previous hunk",
+		},
+
+		-- Global mappings (will also be buffer-local inside `on_attach`)
+		{ "<leader>h", name = "+Gitsigns" },
+	},
 	opts = {
 		on_attach = function(bufnr)
 			local gs = package.loaded.gitsigns
@@ -8,10 +28,6 @@ return {
 			local function map(mode, l, r, desc)
 				vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
 			end
-
-			-- Navigation
-			map("n", "]h", gs.next_hunk, "Next Hunk")
-			map("n", "[h", gs.prev_hunk, "Prev Hunk")
 
 			-- Actions
 			map("n", "<leader>hs", gs.stage_hunk, "Stage hunk")
@@ -25,14 +41,13 @@ return {
 
 			map("n", "<leader>hS", gs.stage_buffer, "Stage buffer")
 			map("n", "<leader>hR", gs.reset_buffer, "Reset buffer")
-
 			map("n", "<leader>hu", gs.undo_stage_hunk, "Undo stage hunk")
-
 			map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")
 
 			map("n", "<leader>hb", function()
 				gs.blame_line({ full = true })
 			end, "Blame line")
+
 			map("n", "<leader>hB", gs.toggle_current_line_blame, "Toggle line blame")
 
 			map("n", "<leader>hd", gs.diffthis, "Diff this")
@@ -41,7 +56,7 @@ return {
 			end, "Diff this ~")
 
 			-- Text object
-			map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", "Gitsigns select hunk")
+			map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", "Select hunk")
 		end,
 	},
 }
