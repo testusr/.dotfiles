@@ -14,7 +14,7 @@
                                          name: (identifier) @setter_name
                                                parameters: (formal_parameters (formal_parameter name: (identifier) @param_name))
                                                      body: (block (expression_statement (assignment_expression left: (_) right: (_)))))
-                               (#match? @getter_name "^(get|is)[A-Z]")
+                               (#match? @getter_name "^(get|is)[A-Za-z]")
                                    (#match? @setter_name "^set[A-Za-z]")
                                        (#eq? @field_ref @field_name)
                                        (#eq? @param_name @field_name))) @bean_class)

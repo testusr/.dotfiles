@@ -20,7 +20,7 @@ local function get_lsp_client()
 	return nil
 end
 
--- Find references using LSP (unchanged)
+-- Find references using LSP
 local function find_references(class_name, bufnr, position)
 	local client = get_lsp_client()
 	if not client then
@@ -31,7 +31,7 @@ local function find_references(class_name, bufnr, position)
 		position = position,
 		context = { includeDeclaration = false },
 	}
-	local result = client.request_sync("textDocument/references", params, 2000, bufnr)
+	local result = client.request_sync("textDocument/references", params, 200000, bufnr)
 	if not result or result.err or not result.result then
 		vim.notify("Failed to find references: " .. (result and result.err or "timeout"), vim.log.levels.ERROR)
 		return {}
@@ -40,7 +40,7 @@ local function find_references(class_name, bufnr, position)
 	return result.result
 end
 
--- Find beans (unchanged)
+-- Find beans
 M.find_beans = function()
 	local bufnr = api.nvim_get_current_buf()
 	local parser = ts.get_parser(bufnr, "java")
@@ -192,7 +192,7 @@ M.convert_bean_to_record_with_builder = function(class_name)
 	api.nvim_buf_set_lines(bufnr, 0, -1, false, record_lines)
 end
 
--- Main conversion function (unchanged)
+-- Main conversion function
 M.convert_and_update_references = function(class_name)
 	local bufnr = api.nvim_get_current_buf()
 	local parser = ts.get_parser(bufnr, "java")
@@ -271,18 +271,26 @@ M.update_usages_in_buffer = function(class_name, bufnr)
 	)
 
 	local changes = {}
-	local setters = {} -- To group setters
+	local setters = {}
+	local processed_nodes = {} -- Track processed nodes to avoid duplicates
+
 	for id, node in usage_query:iter_captures(tree:root(), bufnr) do
 		local capture_name = usage_query.captures[id]
 		local row, col = node:start()
 		local _, end_col = node:end_()
 
+		-- Skip if already processed
+		if processed_nodes[node:id()] then
+			goto continue
+		end
+
 		-- Handle object creation
 		if capture_name == "class_name" and ts.get_node_text(node, bufnr) == class_name then
-			local parent = node:parent() -- Ensure we replace the full 'new MyBeanA()'
+			local parent = node:parent()
 			local p_row, p_col = parent:start()
 			local _, p_end_col = parent:end_()
 			changes[p_row + 1] = { start_col = p_col, end_col = p_end_col, text = class_name .. ".builder().build()" }
+			processed_nodes[parent:id()] = true
 		elseif capture_name == "method" then
 			local obj_node = node:named_child(0)
 			local method_name_node = node:named_child(1)
@@ -290,8 +298,8 @@ M.update_usages_in_buffer = function(class_name, bufnr)
 			local obj_text = ts.get_node_text(obj_node, bufnr)
 			local obj_full_text = obj_node:type() == "identifier" and obj_text
 				or ts.get_node_text(obj_node:parent(), bufnr)
-			local is_target = (obj_node:type() == "identifier" and vim.tbl_contains(variables, obj_text))
-				or (obj_node:type() == "field_access" and vim.tbl_contains(variables, obj_full_text:match("[^.]+$")))
+			local target_name = obj_node:type() == "identifier" and obj_text or obj_text -- Use field name for field_access
+			local is_target = vim.tbl_contains(variables, target_name)
 			if is_target then
 				local method_name = ts.get_node_text(method_name_node, bufnr)
 				-- Handle setters
@@ -300,19 +308,26 @@ M.update_usages_in_buffer = function(class_name, bufnr)
 					local field_name = method_name:match("^set(.+)")
 					local cap_field_name = field_name:sub(1, 1):upper() .. field_name:sub(2)
 					local with_clause = ".with" .. cap_field_name .. "(" .. args_text .. ")"
-					table.insert(
-						setters,
-						{ row = row, obj = obj_full_text, with = with_clause, start_col = col, end_col = end_col }
-					)
+					table.insert(setters, {
+						row = row,
+						obj = obj_full_text,
+						with = with_clause,
+						start_col = col,
+						end_col = end_col,
+						node_id = node:id(),
+					})
+					processed_nodes[node:id()] = true
 				-- Handle getters
 				elseif method_name:match("^get.") or method_name:match("^is.") then
 					local field_name = method_name:match("^get(.+)") or method_name:match("^is(.+)")
 					field_name = field_name:sub(1, 1):lower() .. field_name:sub(2)
 					changes[row + 1] =
 						{ start_col = col, end_col = end_col, text = obj_full_text .. "." .. field_name .. "()" }
+					processed_nodes[node:id()] = true
 				end
 			end
 		end
+		::continue::
 	end
 
 	-- Group consecutive setters
@@ -344,9 +359,14 @@ M.update_usages_in_buffer = function(class_name, bufnr)
 		table.insert(grouped_setters, current_group)
 	end
 
-	-- Apply grouped setter changes with semicolon
+	-- Apply grouped setter changes
 	for _, group in ipairs(grouped_setters) do
-		local new_text = group.obj .. " = " .. group.obj .. ".toBuilder()" .. table.concat(group.withs) .. ".build();"
+		local new_text = group.obj .. " = " .. group.obj .. ".toBuilder()" .. table.concat(group.withs) .. ".build()"
+		-- Check if the line already ends with a semicolon
+		local line_content = lines[group.start_row + 1]
+		if not line_content:match(";%s*$") then
+			new_text = new_text .. ";"
+		end
 		changes[group.start_row + 1] = { start_col = group.start_col, end_col = group.end_col, text = new_text }
 	end
 
@@ -362,7 +382,7 @@ M.update_usages_in_buffer = function(class_name, bufnr)
 	api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 end
 
--- Telescope picker (unchanged)
+-- Telescope picker
 M.select_beans_to_convert = function()
 	local beans = M.find_beans()
 	if #beans == 0 then
