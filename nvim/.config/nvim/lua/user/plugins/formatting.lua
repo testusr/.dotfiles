@@ -3,6 +3,7 @@ return {
 	event = { "BufReadPre", "BufNewFile" },
 	config = function()
 		local conform = require("conform")
+		local wk = require("which-key")
 
 		conform.setup({
 			formatters_by_ft = {
@@ -28,12 +29,26 @@ return {
 			},
 		})
 
-		vim.keymap.set({ "n", "v" }, "<leader>mp", function()
-			conform.format({
-				lsp_fallback = true,
-				async = false,
-				timeout_ms = 1000,
-			})
-		end, { desc = "Format file or range (in visual mode)" })
+		wk.register({
+			m = {
+				name = "+Format",
+				p = {
+					function()
+						conform.format({
+							lsp_fallback = true,
+							async = false,
+							timeout_ms = 1000,
+						})
+					end,
+					"Format file or selection",
+				},
+			},
+		}, {
+			prefix = "<leader>",
+			mode = { "n", "v" },
+			silent = true,
+			noremap = true,
+			nowait = true,
+		})
 	end,
 }

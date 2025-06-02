@@ -1,20 +1,31 @@
 return {
 	"folke/trouble.nvim",
-	dependencies = { "nvim-tree/nvim-web-devicons", "folke/todo-comments.nvim" },
+	dependencies = {
+		"nvim-tree/nvim-web-devicons",
+		"folke/todo-comments.nvim",
+	},
 	opts = {
 		focus = true,
 	},
 	cmd = "Trouble",
-	keys = {
-		{ "<leader>xw", "<cmd>Trouble diagnostics toggle<CR>", desc = "Open trouble workspace diagnostics" },
-		{
-			"<leader>xd",
-			"<cmd>Trouble diagnostics toggle filter.buf=0<CR>",
-			desc = "Open trouble document diagnostics",
-		},
-		{ "<leader>xq", "<cmd>Trouble quickfix toggle<CR>", desc = "Open trouble quickfix list" },
-		{ "<leader>xl", "<cmd>Trouble loclist toggle<CR>", desc = "Open trouble location list" },
-		{ "<leader>xt", "<cmd>Trouble todo toggle<CR>", desc = "Open todos in trouble" },
-		{ "<leader>x", name = "+Trouble" }, -- <- this defines the group name
-	},
+	config = function()
+		local wk = require("which-key")
+
+		wk.register({
+			x = {
+				name = "+Trouble",
+				w = { "<cmd>Trouble diagnostics toggle<CR>", "Workspace diagnostics" },
+				d = { "<cmd>Trouble diagnostics toggle filter.buf=0<CR>", "Document diagnostics" },
+				q = { "<cmd>Trouble quickfix toggle<CR>", "Quickfix list" },
+				l = { "<cmd>Trouble loclist toggle<CR>", "Location list" },
+				t = { "<cmd>Trouble todo toggle<CR>", "Todo list" },
+			},
+		}, {
+			prefix = "<leader>",
+			mode = "n",
+			silent = true,
+			noremap = true,
+			nowait = true,
+		})
+	end,
 }
