@@ -17,46 +17,99 @@ return {
 			end,
 			desc = "Previous hunk",
 		},
-
-		-- Global mappings (will also be buffer-local inside `on_attach`)
-		{ "<leader>h", name = "+Gitsigns" },
 	},
 	opts = {
 		on_attach = function(bufnr)
 			local gs = package.loaded.gitsigns
+			local wk = require("which-key")
 
-			local function map(mode, l, r, desc)
-				vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
-			end
+			wk.register({
+				gs = {
+					name = "+Git",
+					s = {
+						function()
+							gs.stage_hunk()
+						end,
+						"Stage hunk",
+					},
+					r = {
+						function()
+							gs.reset_hunk()
+						end,
+						"Reset hunk",
+					},
+					S = {
+						function()
+							gs.stage_buffer()
+						end,
+						"Stage buffer",
+					},
+					R = {
+						function()
+							gs.reset_buffer()
+						end,
+						"Reset buffer",
+					},
+					u = {
+						function()
+							gs.undo_stage_hunk()
+						end,
+						"Undo stage hunk",
+					},
+					p = {
+						function()
+							gs.preview_hunk()
+						end,
+						"Preview hunk",
+					},
+					b = {
+						function()
+							gs.blame_line({ full = true })
+						end,
+						"Blame line",
+					},
+					B = {
+						function()
+							gs.toggle_current_line_blame()
+						end,
+						"Toggle line blame",
+					},
+					d = {
+						function()
+							gs.diffthis()
+						end,
+						"Diff this",
+					},
+					D = {
+						function()
+							gs.diffthis("~")
+						end,
+						"Diff this ~",
+					},
+				},
+			}, {
+				prefix = "<leader>",
+				buffer = bufnr,
+				mode = "n",
+				silent = true,
+				noremap = true,
+				nowait = true,
+			})
 
-			-- Actions
-			map("n", "<leader>hs", gs.stage_hunk, "Stage hunk")
-			map("n", "<leader>hr", gs.reset_hunk, "Reset hunk")
-			map("v", "<leader>hs", function()
+			-- Visual mode mappings
+			vim.keymap.set("v", "<leader>gs", function()
 				gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
-			end, "Stage hunk")
-			map("v", "<leader>hr", function()
+			end, { desc = "Stage hunk", buffer = bufnr })
+
+			vim.keymap.set("v", "<leader>gr", function()
 				gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
-			end, "Reset hunk")
-
-			map("n", "<leader>hS", gs.stage_buffer, "Stage buffer")
-			map("n", "<leader>hR", gs.reset_buffer, "Reset buffer")
-			map("n", "<leader>hu", gs.undo_stage_hunk, "Undo stage hunk")
-			map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")
-
-			map("n", "<leader>hb", function()
-				gs.blame_line({ full = true })
-			end, "Blame line")
-
-			map("n", "<leader>hB", gs.toggle_current_line_blame, "Toggle line blame")
-
-			map("n", "<leader>hd", gs.diffthis, "Diff this")
-			map("n", "<leader>hD", function()
-				gs.diffthis("~")
-			end, "Diff this ~")
+			end, { desc = "Reset hunk", buffer = bufnr })
 
 			-- Text object
-			map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", "Select hunk")
+			vim.keymap.set({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", {
+				desc = "Select hunk",
+				buffer = bufnr,
+			})
 		end,
 	},
 }

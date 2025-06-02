@@ -27,11 +27,14 @@ return {
 			-- Register with which-key
 			local wk = require("which-key")
 			wk.register({
-				g = {
-					name = "Git",
-					g = { "<cmd>Neogit<CR>", "Open Neogit", desc = "Open Neogit status" }, -- <leader>gg
-				},
-			}, { prefix = "<leader>", mode = "n" })
+				gn = { "<cmd>Neogit<CR>", "Open Neogit" },
+			}, {
+				prefix = "<leader>",
+				mode = "n",
+				silent = true,
+				noremap = true,
+				nowait = true,
+			})
 		end,
 	},
 }
