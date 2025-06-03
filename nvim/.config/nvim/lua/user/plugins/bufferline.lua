@@ -1,11 +1,41 @@
 return {
-  "akinsho/bufferline.nvim",
-  version = "*",
-    opts = {
-      options = {
-      mode="tabs",
-      separator_style = "slant",
-    },
-  },
-}
+	"akinsho/bufferline.nvim",
+	version = "*",
+	dependencies = { "nvim-tree/nvim-web-devicons" }, -- Required for icons
+	opts = {
+		options = {
+			mode = "tabs", -- Treat buffers as tabs
+			separator_style = "slant", -- Slant separator style
+		},
+	},
+	config = function(_, opts)
+		-- Initialize bufferline with provided options
+		require("bufferline").setup(opts)
 
+		-- Define bufferline keybindings
+		local keymap = vim.keymap.set
+		local opts = { noremap = true, silent = true }
+
+		-- Bufferline shortcuts
+		keymap("n", "<Tab>", ":BufferLineCycleNext<CR>", opts) -- Next tab
+		keymap("n", "<S-Tab>", ":BufferLineCyclePrev<CR>", opts) -- Previous tab
+		keymap("n", "<leader>tc", ":BufferLineClose<CR>", opts) -- Close current tab
+		keymap("n", "<leader>tC", ":BufferLineGroupClose<CR>", opts) -- Close all tabs in group
+		keymap("n", "<leader>tl", ":BufferLineMoveNext<CR>", opts) -- Move tab right
+		keymap("n", "<leader>th", ":BufferLineMovePrev<CR>", opts) -- Move tab left
+		keymap("n", "<leader>tp", ":BufferLinePick<CR>", opts) -- Pick tab by letter
+
+		-- Register with which-key
+		local which_key = require("which-key")
+		which_key.register({
+			t = {
+				name = "Tabs", -- Category name in which-key
+				c = { ":BufferLineClose<CR>", "Close Tab" },
+				C = { ":BufferLineGroupClose<CR>", "Close Tab Group" },
+				l = { ":BufferLineMoveNext<CR>", "Move Tab Right" },
+				h = { ":BufferLineMovePrev<CR>", "Move Tab Left" },
+				p = { ":BufferLinePick<CR>", "Pick Tab" },
+			},
+		}, { prefix = "<leader>", mode = "n" })
+	end,
+}
