@@ -21,3 +21,5 @@ keymap.set("n", "<leader>tx", "<cmd>tabclose<CR>", { desc = "Close current tab" 
 keymap.set("n", "<leader>tn", "<cmd>tabn<CR>", { desc = "Go to next tab" }) -- go to next tab
 keymap.set("n", "<leader>tp", "<cmd>tabp<CR>", { desc = "Go to previos tab" }) -- go to previous tab
 keymap.set("n", "<leader>tg", "<cmd>tabnew %<CR>", { desc = "Open current buffere in new tab" }) -- open current file in new tah
+
+keymap.set("n", "<leader>p", '"+p', { desc = "Paste from clipboard" }) -- paste from Clipboard raw, withou triggering any formatting or other text manipulations
