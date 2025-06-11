@@ -19,63 +19,56 @@ return {
 				},
 			})
 
-			-- Custom functions for mappings
-			local function mark_file()
-				harpoon:list():add()
-				vim.notify("Harpoon: Marked file", vim.log.levels.INFO)
+			local harpoon = require("harpoon")
+			local mark_file = function()
+				harpoon:list():append()
 			end
-
-			local function toggle_menu()
+			local toggle_menu = function()
 				harpoon.ui:toggle_quick_menu(harpoon:list())
 			end
-
-			local function nav_next()
+			local nav_next = function()
 				harpoon:list():next()
 			end
-
-			local function nav_prev()
+			local nav_prev = function()
 				harpoon:list():prev()
 			end
 
-			-- Register with which-key
 			local wk = require("which-key")
 			wk.register({
-				h = {
-					name = "Harpoon",
-					m = { mark_file, "Mark File", desc = "Mark current file for Harpoon" }, -- <leader>hm
-					h = { toggle_menu, "Toggle Menu", desc = "Toggle Harpoon menu" }, -- <leader>hh
-					n = { nav_next, "Next File", desc = "Go to next Harpoon file" }, -- <leader>hn
-					p = { nav_prev, "Previous File", desc = "Go to previous Harpoon file" }, -- <leader>hp
-					["1"] = {
-						function()
-							harpoon:list():select(1)
-						end,
-						"File 1",
-						desc = "Go to Harpoon file 1",
-					}, -- <leader>h1
-					["2"] = {
-						function()
-							harpoon:list():select(2)
-						end,
-						"File 2",
-						desc = "Go to Harpoon file 2",
-					}, -- <leader>h2
-					["3"] = {
-						function()
-							harpoon:list():select(3)
-						end,
-						"File 3",
-						desc = "Go to Harpoon file 3",
-					}, -- <leader>h3
-					["4"] = {
-						function()
-							harpoon:list():select(4)
-						end,
-						"File 4",
-						desc = "Go to Harpoon file 4",
-					}, -- <leader>h4
+				{ keys = "<leader>h", group = "Harpoon" },
+				{ keys = "<leader>hm", desc = "Mark current file for Harpoon", command = mark_file },
+				{ keys = "<leader>hh", desc = "Toggle Harpoon menu", command = toggle_menu },
+				{ keys = "<leader>hn", desc = "Go to next Harpoon file", command = nav_next },
+				{ keys = "<leader>hp", desc = "Go to previous Harpoon file", command = nav_prev },
+				{
+					keys = "<leader>h1",
+					desc = "Go to Harpoon file 1",
+					command = function()
+						harpoon:list():select(1)
+					end,
 				},
-			}, { prefix = "<leader>", mode = "n" })
+				{
+					keys = "<leader>h2",
+					desc = "Go to Harpoon file 2",
+					command = function()
+						harpoon:list():select(2)
+					end,
+				},
+				{
+					keys = "<leader>h3",
+					desc = "Go to Harpoon file 3",
+					command = function()
+						harpoon:list():select(3)
+					end,
+				},
+				{
+					keys = "<leader>h4",
+					desc = "Go to Harpoon file 4",
+					command = function()
+						harpoon:list():select(4)
+					end,
+				},
+			}, { mode = "n" })
 		end,
 	},
 }

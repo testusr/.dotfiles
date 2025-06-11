@@ -40,7 +40,20 @@ return {
 				mappings = { basic = true, extra = true },
 			})
 
-			-- LSP keybindings
+      vim.o.updatetime = 300
+      vim.diagnostic.config({
+        virtual_text = true,
+        update_in_insert = false,
+        underline = true,
+        severity_sort = true,
+        float = {
+          border = "rounded",
+          source = "always",
+          header = "",
+          prefix = "",
+        },
+      })			-- LSP keybindings
+
 			vim.api.nvim_create_autocmd("LspAttach", {
 				group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
 				callback = function(ev)

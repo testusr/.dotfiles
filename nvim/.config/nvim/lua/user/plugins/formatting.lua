@@ -22,11 +22,7 @@ return {
 				python = { "isort", "black" },
 				java = { "google-java-format" },
 			},
-			format_on_save = {
-				lsp_fallback = true,
-				async = false,
-				timeout_ms = 1000,
-			},
+			format_on_save = false, -- ✅ disables auto-format on save
 		})
 
 		wk.register({

@@ -20,9 +20,7 @@ local function class_template(relative_path, filename)
 
 
 public class ]] .. classname .. [[ {
-    public static void main(String[] args) {
-        // TODO: Add code here
-    }
+    // TODO: Add class components or methods
 }
 ]]
 end
@@ -65,7 +63,7 @@ local function interface_template(relative_path, filename)
 
 
 public interface ]] .. interfacename .. [[ {
-    // TODO: Define methods
+    // TODO: Add interface methods
     void exampleMethod();
 }
 ]]
