@@ -34,14 +34,13 @@ local function share(key, value)
     end
     file:close()
   else
-    print("Error writing to shared?env")
+    print("Error writing to shared_env")
   end
 end
 
 -- Expose as a global or command
 _G.share = share  -- Use in Lua scripts: share("ACCESS_TOKEN", "new-value")
 
--- Optional: Create a Neovim command
 vim.api.nvim_create_user_command('ShareEnv', function(opts)
   local key = opts.args:match("^(%S+)")
   local value = opts.args:match("%S+%s+(.+)")
@@ -52,7 +51,6 @@ vim.api.nvim_create_user_command('ShareEnv', function(opts)
   end
 end, { nargs = '*' })
 
--- Your parse_dotenv and original share here (we'll override share below)...
 
 return {
   "rest-nvim/rest.nvim",
@@ -74,14 +72,19 @@ return {
     local function get_merged_env()
       local shared_env = parse_dotenv(vim.fn.getcwd() .. '/.shared_env')
       local selected_env = parse_dotenv(_G.selected_env_file)
-      return vim.tbl_extend("force", shared_env, selected_env)
+      local merged = vim.tbl_extend("force", shared_env, selected_env)
+      return merged
+    end
+
+    local function reload_env()
+      local merged = get_merged_env()
+      for key, value in pairs(merged) do
+        vim.fn.setenv(key, value)
+      end
     end
 
     -- Load merged vars into shell env at startup
-    local initial_merged = get_merged_env()
-    for key, value in pairs(initial_merged) do
-      vim.fn.setenv(key, value)
-    end
+    reload_env()
 
     -- Updated share function: Write to file, then reload merged and set to shell env
     local function share(key, value)
@@ -103,10 +106,7 @@ return {
       end
 
       -- Reload merged (shared + selected) and set all to shell env
-      local merged = get_merged_env()
-      for k, v in pairs(merged) do
-        vim.fn.setenv(k, v)
-      end
+      reload_env()
     end
 
     -- Expose share
@@ -130,6 +130,17 @@ return {
       },
     }
 
+    -- Wrapper functions to reload env before running requests
+    local function run_request()
+      reload_env()
+      vim.cmd("Rest run")
+    end
+
+    local function run_last_request()
+      reload_env()
+      vim.cmd("Rest last")
+    end
+
     -- Custom command to select env file and reload merged into shell env
     vim.api.nvim_create_user_command('RestEnvSelect', function()
       local env_files = vim.fs.find(function(name) return name:match('%.env.*$') end, {
@@ -142,10 +153,7 @@ return {
           _G.selected_env_file = selected
           print("Selected env: " .. selected)
           -- Reload merged and set to shell env
-          local merged = get_merged_env()
-          for key, value in pairs(merged) do
-            vim.fn.setenv(key, value)
-          end
+          reload_env()
         end
       end)
     end, {})
@@ -155,8 +163,8 @@ return {
     wk.register({
       r = {
         name = "Rest.nvim",
-        r = { "<cmd>Rest run<cr>", "Run request" },
-        l = { "<cmd>Rest run last<cr>", "Re-run last request" },
+        r = { run_request, "Run request" },
+        l = { run_last_request, "Re-run last request" },
         e = { "<cmd>RestEnvSelect<cr>", "Select environment" },
       },
     }, { prefix = "<leader>" })
