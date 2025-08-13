@@ -1,0 +1,2 @@
+mvn-quickstart() {mvn archetype:generate -DartifactId=$1 -DgroupId=${2:-com.mycompany.app} -DarchetypeArtifactId=maven-archetype-quickstart -DarchetypeVersion=1.5 -DinteractiveMode=false}
+
